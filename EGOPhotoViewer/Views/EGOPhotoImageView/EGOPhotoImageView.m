@@ -87,9 +87,9 @@
 		_activityView = [activityView retain];
 		[activityView release];
 		
-		RotateGesture *gesture = [[RotateGesture alloc] initWithTarget:self action:@selector(rotate:)];
-		[self addGestureRecognizer:gesture];
-		[gesture release];
+//		RotateGesture *gesture = [[RotateGesture alloc] initWithTarget:self action:@selector(rotate:)];
+//		[self addGestureRecognizer:gesture];
+//		[gesture release];
 		
 	}
     return self;
