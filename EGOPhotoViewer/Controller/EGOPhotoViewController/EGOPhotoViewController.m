@@ -48,6 +48,7 @@
 @synthesize photoViews=_photoViews;
 @synthesize _fromPopover;
 @synthesize actionButtonHidden=_actionButtonHidden;
+@synthesize doneButtonHidden;
 
 - (id)initWithPhoto:(id<EGOPhoto>)aPhoto {
 	return [self initWithPhotoSource:[[[EGOQuickPhotoSource alloc] initWithPhotos:[NSArray arrayWithObjects:aPhoto,nil]] autorelease]];
@@ -176,6 +177,11 @@
 		if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad && _popover==nil) {
 			[self.navigationController setNavigationBarHidden:NO animated:NO];
 		}
+        
+        if (_barsHidden) {
+            [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
+        }
+        
 #endif
 		
 	} else {
@@ -227,6 +233,8 @@
 - (void)viewWillDisappear:(BOOL)animated{
 	[super viewWillDisappear:animated];
 	
+    [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
+    
 	self.navigationController.navigationBar.barStyle = _oldNavBarStyle;
 	self.navigationController.navigationBar.tintColor = _oldNavBarTintColor;
 	self.navigationController.navigationBar.translucent = _oldNavBarTranslucent;
@@ -328,7 +336,7 @@
 	}
 	
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
-	if (!_popover && UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad && !_fromPopover) {
+	if (!_popover && UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad && !_fromPopover && !self.doneButtonHidden) {
 		if (self.modalPresentationStyle == UIModalPresentationFullScreen) {
 			UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(done:)];
 			self.navigationItem.rightBarButtonItem = doneButton;
@@ -341,7 +349,13 @@
 	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:YES];
 #endif
 	
-	UIBarButtonItem *action = (_actionButtonHidden) ? [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil] : [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonHit:)];
+    UIBarButtonItem *action;
+    if (_actionButtonHidden) {
+        action = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace target:nil action:nil];
+        action.width = 40.0f;
+    } else {
+        action = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAction target:self action:@selector(actionButtonHit:)];
+    }
 	UIBarButtonItem *flex = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace target:nil action:nil];
 	
 	if ([self.photoSource numberOfPhotos] > 1) {
@@ -402,8 +416,6 @@
 #pragma mark Bar/Caption Methods
 
 - (void)setStatusBarHidden:(BOOL)hidden animated:(BOOL)animated{
-	if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad) return; 
-	
 	if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
 		
 		[[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationFade];
@@ -423,26 +435,57 @@
 		[_captionView setCaptionHidden:hidden];
 		return;
 	}
+    
 		
 	[self setStatusBarHidden:hidden animated:animated];
+    
+    // fix for a bug? when coming back from leaving the application the navigationBar gets put at the wrong y origin
+    CGRect frame = self.navigationController.navigationBar.frame;
+    [self.navigationController.navigationBar setFrame:CGRectMake(frame.origin.x, 20.0, frame.size.width, frame.size.height)];
 	
+    
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		
 		if (!_popover) {
 			
-			if (animated) {
-				[UIView beginAnimations:nil context:NULL];
-				[UIView setAnimationDuration:0.3f];
-				[UIView setAnimationCurve:UIViewAnimationCurveEaseInOut];
-			}
-			
-			self.navigationController.navigationBar.alpha = hidden ? 0.0f : 1.0f;
-			self.navigationController.toolbar.alpha = hidden ? 0.0f : 1.0f;
-			
-			if (animated) {
-				[UIView commitAnimations];
-			}
+            
+            void (^updateProperties) (void) = ^ {
+                self.navigationController.navigationBar.alpha = hidden ? 0.0f : 1.0f;
+                self.navigationController.toolbar.alpha = hidden ? 0.0f : 1.0f;
+                if (self.tabBarController) {
+                    
+                    int height = self.tabBarController.tabBar.bounds.size.height;
+                    
+                    for(UIView *view in self.tabBarController.view.subviews)
+                    {
+                        if([view isKindOfClass:[UITabBar class]])
+                        {
+                            int newBarPosition = hidden ? self.view.bounds.size.height : self.view.bounds.size.height;
+                            [view setFrame:CGRectMake(view.frame.origin.x, newBarPosition, view.frame.size.width, view.frame.size.height)];
+                        } 
+                        else 
+                        {
+                            int newViewHeight = hidden ? view.frame.size.height + height : view.frame.size.height - height;
+                            CGRect newFrame = CGRectMake(view.frame.origin.x, view.frame.origin.y, view.frame.size.width, newViewHeight);
+                            [view setFrame:newFrame];
+                            
+                            // update our VC frame with animation
+                            [self.view setFrame:newFrame];
+                            
+                        }
+                        
+                    }
+                }
+
+            };
+            
+            
+            if (animated) {
+                [UIView animateWithDuration:0.3f animations:updateProperties];
+            } else {
+                updateProperties();
+            }
 			
 		} 
 		
@@ -450,11 +493,11 @@
 		
 		[self.navigationController setNavigationBarHidden:hidden animated:animated];
     
-		// Set toolbar hidden if there is only one pic and the action menu is hidden
-    if ([self.photoSource numberOfPhotos] <= 1 && _actionButtonHidden)
-      [self.navigationController setToolbarHidden:YES animated:animated];
-    else
-      [self.navigationController setToolbarHidden:hidden animated:animated];
+            // Set toolbar hidden if there is only one pic and the action menu is hidden
+        if ([self.photoSource numberOfPhotos] <= 1 && _actionButtonHidden)
+          [self.navigationController setToolbarHidden:YES animated:animated];
+        else
+          [self.navigationController setToolbarHidden:hidden animated:animated];
 		
 	}
 #else
@@ -468,7 +511,6 @@
     [self.navigationController setToolbarHidden:hidden animated:animated];
 	
 #endif
-	
 	if (_captionView) {
 		[_captionView setCaptionHidden:hidden];
 	}

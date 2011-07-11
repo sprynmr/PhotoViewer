@@ -62,8 +62,7 @@
 	UIView *_popoverOverlay;
 	UIView *_transferView;
   
-  BOOL _actionButtonHidden;
-	
+    BOOL _actionButtonHidden;
 }
 
 - (id)initWithPhoto:(id<EGOPhoto>)aPhoto;
@@ -79,6 +78,7 @@
 @property(nonatomic,retain) UIScrollView *scrollView;
 @property(nonatomic,assign) BOOL _fromPopover;
 @property(nonatomic,assign) BOOL actionButtonHidden;
+@property(nonatomic,assign) BOOL doneButtonHidden;
 
 - (NSInteger)currentPhotoIndex;
 - (void)moveToPhotoAtIndex:(NSInteger)index animated:(BOOL)animated;
