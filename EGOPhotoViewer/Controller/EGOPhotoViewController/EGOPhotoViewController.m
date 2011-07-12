@@ -136,7 +136,7 @@
 	[views release];
 
 
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 	if ([self.photoSource numberOfPhotos] == 1 && UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad) {
 		
 		[self.navigationController setNavigationBarHidden:YES animated:NO];
@@ -147,8 +147,6 @@
 		[self setViewState];
 		
 	}
-#endif
-	
 
 }
 
@@ -173,7 +171,7 @@
 			view = view.superview;
 		}
 		
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 		if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad && _popover==nil) {
 			[self.navigationController setNavigationBarHidden:NO animated:NO];
 		}
@@ -181,8 +179,6 @@
         if (_barsHidden) {
             [[UIApplication sharedApplication] setStatusBarHidden:YES withAnimation:UIStatusBarAnimationFade];
         }
-        
-#endif
 		
 	} else {
 		
@@ -265,11 +261,10 @@
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
 	
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		return YES;
 	}
-#endif
 	
    	return (UIInterfaceOrientationIsLandscape(interfaceOrientation) || interfaceOrientation == UIInterfaceOrientationPortrait);
 	
@@ -334,7 +329,6 @@
 		return;
 	}
 	
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
 	if (!_popover && UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad && !_fromPopover && !self.doneButtonHidden) {
 		if (self.modalPresentationStyle == UIModalPresentationFullScreen) {
 			UIBarButtonItem *doneButton = [[UIBarButtonItem alloc] initWithTitle:@"Done" style:UIBarButtonItemStyleDone target:self action:@selector(done:)];
@@ -344,9 +338,6 @@
 	} else if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
 		[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:YES];
 	}
-#else 
-	[[UIApplication sharedApplication] setStatusBarStyle:UIStatusBarStyleBlackTranslucent animated:YES];
-#endif
 	
     UIBarButtonItem *action;
     if (_actionButtonHidden) {
@@ -415,16 +406,7 @@
 #pragma mark Bar/Caption Methods
 
 - (void)setStatusBarHidden:(BOOL)hidden animated:(BOOL)animated{
-	if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
-		
-		[[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationFade];
-		
-	} else {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED < 30200
-		[[UIApplication sharedApplication] setStatusBarHidden:hidden animated:animated];
-#endif
-	}
-
+    [[UIApplication sharedApplication] setStatusBarHidden:hidden withAnimation:UIStatusBarAnimationFade];
 }
 
 - (void)setBarsHidden:(BOOL)hidden animated:(BOOL)animated{
@@ -443,7 +425,6 @@
     [self.navigationController.navigationBar setFrame:CGRectMake(frame.origin.x, 20.0, frame.size.width, frame.size.height)];
 	
     
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
 	if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
 		
 		if (!_popover) {
@@ -505,17 +486,7 @@
           [self.navigationController setToolbarHidden:hidden animated:animated];
 		
 	}
-#else
-	
-	[self.navigationController setNavigationBarHidden:hidden animated:animated];
-  
-  // Set toolbar hidden if there is only one pic and the action menu is hidden
-  if ([self.photoSource numberOfPhotos] <= 1 && _actionButtonHidden)
-    [self.navigationController setToolbarHidden:YES animated:animated];
-  else
-    [self.navigationController setToolbarHidden:hidden animated:animated];
-	
-#endif
+    
 	if (_captionView) {
 		[_captionView setCaptionHidden:hidden];
 	}
@@ -751,8 +722,6 @@
 	if (_captionView) {
 		[_captionView setCaptionText:[[self.photoSource photoAtIndex:_pageIndex] caption] hidden:NO];
 	}
-	
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
 			
 	if([self respondsToSelector:@selector(setContentSizeForViewInPopover:)] && [self.photoSource numberOfPhotos] == 1) {
 		
@@ -762,8 +731,6 @@
 		}
 		
 	}
-	
-#endif
 	
 }
 
@@ -995,11 +962,10 @@
 	[mailViewController addAttachmentData:[NSData dataWithData:UIImagePNGRepresentation(((EGOPhotoImageView*)[self.photoViews objectAtIndex:_pageIndex]).imageView.image)] mimeType:@"image/png" fileName:@"Photo.png"];
 	mailViewController.mailComposeDelegate = self;
 	
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 	if (UI_USER_INTERFACE_IDIOM()==UIUserInterfaceIdiomPad) {
 		mailViewController.modalPresentationStyle = UIModalPresentationPageSheet;
 	}
-#endif
 	
 	[self presentModalViewController:mailViewController animated:YES];
 	[mailViewController release];
@@ -1037,27 +1003,21 @@
 	UIActionSheet *actionSheet;
 	
 	if ([MFMailComposeViewController canSendMail]) {
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && !_popover) {
 			actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", @"Email", nil];
 		} else {
 			actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", @"Email", nil];
 		}
-#else
-		actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", @"Email", nil];
-#endif
 		
 	} else {
 		
-#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 30200
+
 		if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad && !_popover) {
 			actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:nil destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", nil];
 		} else {
 			actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", nil];
 		}
-#else
-		actionSheet = [[UIActionSheet alloc] initWithTitle:@"" delegate:self cancelButtonTitle:@"Cancel" destructiveButtonTitle:nil otherButtonTitles:@"Save", @"Copy", nil];
-#endif
 		
 	}
 	
