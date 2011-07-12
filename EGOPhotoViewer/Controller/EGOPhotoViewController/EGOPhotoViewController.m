@@ -787,9 +787,13 @@
 			EGOPhotoImageView *_photoView = (EGOPhotoImageView*)[self.photoViews objectAtIndex:page];
 			CGRect newframe = CGRectMake(originX, 0.0f, self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
 			
-			if (!CGRectEqualToRect(_photoView.frame, newframe)) {
-                // no idea why someone animated this except for maybe hardware acceleration, but it causes problems
+			if (!CGRectEqualToRect(_photoView.frame, newframe)) {	
+				
+				[UIView beginAnimations:nil context:NULL];
+				[UIView setAnimationDuration:0.1];
 				_photoView.frame = newframe;
+				[UIView commitAnimations];
+			
 			}
 			
 		}
