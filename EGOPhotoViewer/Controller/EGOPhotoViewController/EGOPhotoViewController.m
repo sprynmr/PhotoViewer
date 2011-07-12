@@ -277,7 +277,6 @@
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration{
 	_rotating = YES;
-	
 	if (UIInterfaceOrientationIsLandscape(toInterfaceOrientation) && !_popover) {
 		CGRect rect = [[UIScreen mainScreen] bounds];
 		self.scrollView.contentSize = CGSizeMake(rect.size.height * [self.photoSource numberOfPhotos], rect.size.width);
@@ -456,18 +455,24 @@
                 if (self.tabBarController) {
                     
                     int height = self.tabBarController.tabBar.bounds.size.height;
-                    
                     for(UIView *view in self.tabBarController.view.subviews)
                     {
+                        int newHeight;
+                        UIInterfaceOrientation orientation = [[UIApplication sharedApplication] statusBarOrientation];
+                        if (UIInterfaceOrientationIsPortrait(orientation)) {
+                            newHeight = hidden ? [[UIScreen mainScreen] bounds].size.height : [[UIScreen mainScreen] bounds].size.height - height;
+                        } else {
+                            newHeight = hidden ? [[UIScreen mainScreen] bounds].size.width : [[UIScreen mainScreen] bounds].size.width - height;
+                        }
+                        
+                        
                         if([view isKindOfClass:[UITabBar class]])
                         {
-                            int newBarPosition = hidden ? self.view.bounds.size.height : self.view.bounds.size.height;
-                            [view setFrame:CGRectMake(view.frame.origin.x, newBarPosition, view.frame.size.width, view.frame.size.height)];
+                            [view setFrame:CGRectMake(view.frame.origin.x, newHeight, view.frame.size.width, view.frame.size.height)];
                         } 
                         else 
                         {
-                            int newViewHeight = hidden ? view.frame.size.height + height : view.frame.size.height - height;
-                            CGRect newFrame = CGRectMake(view.frame.origin.x, view.frame.origin.y, view.frame.size.width, newViewHeight);
+                            CGRect newFrame = CGRectMake(view.frame.origin.x, view.frame.origin.y, view.frame.size.width, newHeight);
                             [view setFrame:newFrame];
                             
                             // update our VC frame with animation
