@@ -87,10 +87,6 @@
 		_activityView = [activityView retain];
 		[activityView release];
 		
-//		RotateGesture *gesture = [[RotateGesture alloc] initWithTarget:self action:@selector(rotate:)];
-//		[self addGestureRecognizer:gesture];
-//		[gesture release];
-		
 	}
     return self;
 }
@@ -272,33 +268,30 @@
 }
 
 - (void)layoutScrollViewAnimated:(BOOL)animated{
-
+    
+    void (^updateProperties) (void) = ^ {        
+        CGFloat hfactor = self.imageView.image.size.width / self.frame.size.width;
+        CGFloat vfactor = self.imageView.image.size.height / self.frame.size.height;
+        
+        CGFloat factor = MAX(hfactor, vfactor);
+        
+        CGFloat newWidth = self.imageView.image.size.width / factor;
+        CGFloat newHeight = self.imageView.image.size.height / factor;
+        
+        CGFloat leftOffset = (self.frame.size.width - newWidth) / 2;
+        CGFloat topOffset = (self.frame.size.height - newHeight) / 2;
+        
+        self.scrollView.frame = CGRectMake(leftOffset, topOffset, newWidth, newHeight);
+        self.scrollView.layer.position = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
+        self.scrollView.contentSize = CGSizeMake(self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
+        self.scrollView.contentOffset = CGPointMake(0.0f, 0.0f);
+        self.imageView.frame = self.scrollView.bounds;
+    };
 	if (animated) {
-		[UIView beginAnimations:nil context:NULL];
-		[UIView setAnimationDuration:0.0001];
-	}
-		
-	CGFloat hfactor = self.imageView.image.size.width / self.frame.size.width;
-	CGFloat vfactor = self.imageView.image.size.height / self.frame.size.height;
-	
-	CGFloat factor = MAX(hfactor, vfactor);
-	
-	CGFloat newWidth = self.imageView.image.size.width / factor;
-	CGFloat newHeight = self.imageView.image.size.height / factor;
-	
-	CGFloat leftOffset = (self.frame.size.width - newWidth) / 2;
-	CGFloat topOffset = (self.frame.size.height - newHeight) / 2;
-	
-	self.scrollView.frame = CGRectMake(leftOffset, topOffset, newWidth, newHeight);
-	self.scrollView.layer.position = CGPointMake(self.bounds.size.width/2, self.bounds.size.height/2);
-	self.scrollView.contentSize = CGSizeMake(self.scrollView.bounds.size.width, self.scrollView.bounds.size.height);
-	self.scrollView.contentOffset = CGPointMake(0.0f, 0.0f);
-	self.imageView.frame = self.scrollView.bounds;
-
-
-	if (animated) {
-		[UIView commitAnimations];
-	}
+		[UIView animateWithDuration:0.0001 animations:updateProperties];
+	} else {
+        updateProperties();
+    }
 }
 
 - (CGSize)sizeForPopover{
