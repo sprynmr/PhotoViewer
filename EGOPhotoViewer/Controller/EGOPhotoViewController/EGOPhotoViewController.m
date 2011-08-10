@@ -64,10 +64,6 @@
 
 - (id)initWithPhotoSource:(id <EGOPhotoSource> )aSource{
 	if ((self = [super init])) {
-		
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleBarsNotification:) name:@"EGOPhotoViewToggleBars" object:nil];
-		[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(photoViewDidFinishLoading:) name:@"EGOPhotoDidFinishLoading" object:nil];
-		
 		self.hidesBottomBarWhenPushed = YES;
 		self.wantsFullScreenLayout = YES;		
 		_photoSource = [aSource retain];
@@ -152,7 +148,8 @@
 
 - (void)viewWillAppear:(BOOL)animated{
 	[super viewWillAppear:animated];
-	
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(toggleBarsNotification:) name:@"EGOPhotoViewToggleBars" object:nil];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(photoViewDidFinishLoading:) name:@"EGOPhotoDidFinishLoading" object:nil];
 	if ([[[UIDevice currentDevice] systemVersion] floatValue] >= 3.2) {
 		
 		UIView *view = self.view;
@@ -228,7 +225,9 @@
 
 - (void)viewWillDisappear:(BOOL)animated{
 	[super viewWillDisappear:animated];
-	
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"EGOPhotoViewToggleBars" object:nil];
+    [[NSNotificationCenter defaultCenter] removeObserver:self name:@"EGOPhotoDidFinishLoading" object:nil];    
+
     [[UIApplication sharedApplication] setStatusBarHidden:NO withAnimation:UIStatusBarAnimationFade];
     
 	self.navigationController.navigationBar.barStyle = _oldNavBarStyle;
