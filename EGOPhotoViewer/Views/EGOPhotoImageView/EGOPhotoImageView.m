@@ -36,7 +36,7 @@
 	return NO;
 }
 - (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)preventedGestureRecognizer{
-	return YES;
+	return NO;
 }
 @end
 
@@ -500,6 +500,7 @@
 		}
 
 	} else {
+        
 		[self layoutScrollViewAnimated:YES];
 	}
 }	
