@@ -256,7 +256,6 @@
 }
 
 - (void)layoutScrollViewAnimated:(BOOL)animated{
-    NSLog(@"layoutScrollViewAnimated");    
     void (^updateProperties) (void) = ^ {        
         CGFloat hfactor = self.imageView.image.size.width / self.frame.size.width;
         CGFloat vfactor = self.imageView.image.size.height / self.frame.size.height;
