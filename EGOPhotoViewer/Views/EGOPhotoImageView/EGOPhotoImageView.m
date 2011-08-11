@@ -28,18 +28,6 @@
 
 #define ZOOM_VIEW_TAG 0x101
 
-@interface RotateGesture : UIRotationGestureRecognizer {}
-@end
-
-@implementation RotateGesture
-- (BOOL)canBePreventedByGestureRecognizer:(UIGestureRecognizer*)gesture{
-	return NO;
-}
-- (BOOL)canPreventGestureRecognizer:(UIGestureRecognizer *)preventedGestureRecognizer{
-	return NO;
-}
-@end
-
 
 @interface EGOPhotoImageView (Private)
 - (void)layoutScrollViewAnimated:(BOOL)animated;
@@ -268,7 +256,7 @@
 }
 
 - (void)layoutScrollViewAnimated:(BOOL)animated{
-    
+    NSLog(@"layoutScrollViewAnimated");    
     void (^updateProperties) (void) = ^ {        
         CGFloat hfactor = self.imageView.image.size.width / self.frame.size.width;
         CGFloat vfactor = self.imageView.image.size.height / self.frame.size.height;
@@ -287,11 +275,13 @@
         self.scrollView.contentOffset = CGPointMake(0.0f, 0.0f);
         self.imageView.frame = self.scrollView.bounds;
     };
-	if (animated) {
-		[UIView animateWithDuration:0.0001 animations:updateProperties];
-	} else {
+    // wtf is with the .0001 animation? It was causing the scrollViewDidEndZooming not to fire sometimes
+//	if (animated) {
+//        // try leaving user interaction enabled???
+//		[UIView animateWithDuration:0.0001 animations:updateProperties];
+//	} else {
         updateProperties();
-    }
+//    }
 }
 
 - (CGSize)sizeForPopover{
@@ -391,8 +381,7 @@
 	
 }
 
-- (void)killScrollViewZoom{
-	
+- (void)killScrollViewZoom{    
 	if (!self.scrollView.zoomScale > 1.0f) return;
 
 	[UIView beginAnimations:nil context:NULL];
@@ -438,8 +427,8 @@
 	
 }
 
-- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(float)scale{
-			
+- (void)scrollViewDidEndZooming:(UIScrollView *)scrollView withView:(UIView *)view atScale:(float)scale {
+			    
 	if (scrollView.zoomScale > 1.0f) {		
 		
 		
@@ -504,55 +493,6 @@
 		[self layoutScrollViewAnimated:YES];
 	}
 }	
-
-
-#pragma mark -
-#pragma mark RotateGesture
-
-- (void)rotate:(UIRotationGestureRecognizer*)gesture{
-
-	if (gesture.state == UIGestureRecognizerStateBegan) {
-		
-		[self.layer removeAllAnimations];
-		_beginRadians = gesture.rotation;
-		self.layer.transform = CATransform3DMakeRotation(_beginRadians, 0.0f, 0.0f, 1.0f);
-		
-	} else if (gesture.state == UIGestureRecognizerStateChanged) {
-		
-		self.layer.transform = CATransform3DMakeRotation((_beginRadians + gesture.rotation), 0.0f, 0.0f, 1.0f);
-
-	} else {
-		
-		CABasicAnimation *animation = [CABasicAnimation animationWithKeyPath:@"transform"];
-		animation.toValue = [NSValue valueWithCATransform3D:CATransform3DIdentity];
-		animation.duration = 0.3f;
-		animation.removedOnCompletion = NO;
-		animation.fillMode = kCAFillModeForwards;
-		animation.delegate = self;
-		[animation setValue:[NSNumber numberWithInt:202] forKey:@"AnimationType"];
-		[self.layer addAnimation:animation forKey:@"RotateAnimation"];
-		
-	} 
-
-	
-}
-
-- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag{
-	
-	if (flag) {
-		
-		if ([[anim valueForKey:@"AnimationType"] integerValue] == 101) {
-			
-			[self resetBackgroundColors];
-			
-		} else if ([[anim valueForKey:@"AnimationType"] integerValue] == 202) {
-			
-			self.layer.transform = CATransform3DIdentity;
-			
-		}
-	}
-	
-}
 
 
 #pragma mark -
