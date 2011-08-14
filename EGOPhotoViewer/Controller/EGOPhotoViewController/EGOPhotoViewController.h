@@ -73,7 +73,7 @@
 - (id)initWithPhotoSource:(id <EGOPhotoSource>)aPhotoSource;
 - (id)initWithPopoverController:(id)aPopoverController photoSource:(id <EGOPhotoSource>)aPhotoSource;
 
-@property(nonatomic,readonly) id <EGOPhotoSource> photoSource;
+@property(nonatomic,retain) id <EGOPhotoSource> photoSource;
 @property(nonatomic,retain) NSMutableArray *photoViews;
 @property(nonatomic,retain) UIScrollView *scrollView;
 @property(nonatomic,assign) BOOL _fromPopover;
