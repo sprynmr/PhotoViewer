@@ -1,6 +1,3 @@
-[submodule "Library/EGOImageLoading"]
-	path = Library/EGOImageLoading
-	url = git://github.com/sprynmr/EGOImageLoading.git
 [submodule "EGOImageLoading"]
 	path = EGOImageLoading
 	url = git://github.com/sprynmr/EGOImageLoading.git
